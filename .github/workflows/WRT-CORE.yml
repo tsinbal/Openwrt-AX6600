@@ -59,7 +59,7 @@ env:
   WRT_SOURCE: ${{inputs.WRT_SOURCE}}
   WRT_PACKAGE: ${{inputs.WRT_PACKAGE}}
   WRT_PROFILE: ${{inputs.WRT_PROFILE}}
-  WRT_PKG_INFO: 无（纯净版不集成外部插件）
+  WRT_PKG_INFO: 无（未拉取外部插件）
   WRT_TEST: ${{inputs.WRT_TEST}}
 
 jobs:
@@ -102,7 +102,7 @@ jobs:
           if [[ "$WRT_PROFILE_UPPER" == "PLUS" ]]; then
             echo "WRT_PROFILE_DESC=Plus 版，预装 OpenClash、PassWall2、Docker/Dockerman、AdGuard Home、DDNS、ttyd、UPnP 及分区扩容、网络唤醒等实用插件，刷完即用；启用 AdGuard Home 与代理插件前请先阅读 README 的「PLUS 版使用提示」" >> $GITHUB_ENV
           else
-            echo "WRT_PROFILE_DESC=纯净版，轻量稳定，仅含基础网络与常用管理插件，扩展插件按需自行安装" >> $GITHUB_ENV
+            echo "WRT_PROFILE_DESC=纯净版，预装 Tailscale 与 OpenClash，其余保持轻量的基础网络与常用管理插件" >> $GITHUB_ENV
           fi
           echo "WRT_INFO=${WRT_SOURCE%%/*}" >> $GITHUB_ENV
           echo "WRT_TARGET=$(grep -m 1 -oP '^CONFIG_TARGET_\K[\w]+(?=\=y)' ./Config/$WRT_CONFIG.txt)" >> $GITHUB_ENV
@@ -343,7 +343,7 @@ jobs:
             - 已是 OpenWrt/ImmortalWrt 升级：选文件名带 sysupgrade 的文件
             - 刷机 / 救砖完整教程：[刷机救砖教程](${{ github.server_url }}/${{ github.repository }}/blob/main/Docs/刷机救砖教程.md)
             - Config-*.txt：本次编译的完整 .config 配置，便于复现或二次定制
-            - Packages-*.txt：外部插件（OpenClash / PassWall2 等）的仓库、分支与 commit 记录（纯净版无外部插件，无此文件）
+            - Packages-*.txt：外部插件（OpenClash / Tailscale / PassWall2 等）的仓库、分支与 commit 记录
             - sha256sums.txt：固件校验文件，刷机前请先校验下载完整性（方法见 README 刷机前必读）
 
             ⚠️ 风险提示

@@ -61,6 +61,13 @@ UPDATE_PACKAGE() {
 #UPDATE_PACKAGE "homeproxy" "ones20250/homeproxy" "master"
 #UPDATE_PACKAGE "momo" "nikkinikki-org/OpenWrt-momo" "main"
 #UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
+if [[ "${WRT_PROFILE^^}" == "PURE" ]]; then
+	# 纯净版按需保留的网络服务：tailscale 核心由上游 feeds 提供，
+	# 此处拉取 LuCI 管理界面与 OpenClash。
+	UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "master" "pkg"
+	UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
+fi
+
 if [[ "${WRT_PROFILE^^}" == "PLUS" ]]; then
 	# LuCI 入口随 "pkg" 通配一并提取，依赖包（xray、sing-box、geodata 等）
 	# 由 passwall_packages feed 提供，避免同名包双重定义。
@@ -74,8 +81,6 @@ if [[ "${WRT_PROFILE^^}" == "PLUS" ]]; then
 fi
 
 #UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"
-
-#UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
 
 #UPDATE_PACKAGE "ddns-go" "sirpdboy/luci-app-ddns-go" "main"
 #UPDATE_PACKAGE "diskman" "lisaac/luci-app-diskman" "master"

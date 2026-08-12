@@ -31,7 +31,7 @@ OpenWrt / AX6600 / IPQ6010 / JDCloud RE-CS-02 / NSS / Router Firmware / Cloud Bu
 
 | 版本 | 下载入口 | 适合场景 |
 |------|----------|----------|
-| 🍃 `PURE` 纯净版 | 🎯 **[👉 下载最新 PURE 固件](https://github.com/ones20250/Openwrt-AX6600/releases?q=PURE&expanded=true)** | 轻量稳定，日常推荐，插件按需自装 |
+| 🍃 `PURE` 纯净版 | 🎯 **[👉 下载最新 PURE 固件](https://github.com/ones20250/Openwrt-AX6600/releases?q=PURE&expanded=true)** | 轻量稳定，预置 Tailscale、OpenClash |
 | 🚀 `PLUS` 版 | 🎯 **[👉 下载最新 PLUS 固件](https://github.com/ones20250/Openwrt-AX6600/releases?q=PLUS&expanded=true)** | OpenClash / PassWall2 / Docker / AdGuard Home 开箱即用 |
 
 > ⭐ 固件对你有用的话，顺手点个 Star —— 这是对持续维护最好的支持！
@@ -50,8 +50,8 @@ OpenWrt / AX6600 / IPQ6010 / JDCloud RE-CS-02 / NSS / Router Firmware / Cloud Bu
 | 说明 | 详情 |
 |------|------|
 | **编译时间** | 显示的时间为编译开始时间，用于对应上游源码版本 |
-| **版本划分** | 默认同时构建 `PURE` 纯净版与 `PLUS` 版 |
-| **基础功能** | 纯净版保持当前轻量配置，包含完整网络功能栈 |
+| **版本划分** | 默认仅构建 `PURE` 纯净版；`PLUS` 可通过 `WRT-TEST` 按需构建 |
+| **基础功能** | 纯净版保持轻量配置，包含完整网络功能栈，并预置 Tailscale、OpenClash |
 | **扩展插件** | Plus 版额外集成 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP 等常用组件，也可通过自定义配置 `.config` 文件增加插件 |
 | **硬件平台** | 基于 QUALCOMMAX（IPQ6010）架构 |
 | **性能优化** | 针对 IPQ6010 平台进行网络性能调优 |
@@ -60,7 +60,7 @@ OpenWrt / AX6600 / IPQ6010 / JDCloud RE-CS-02 / NSS / Router Firmware / Cloud Bu
 
 | 版本 | 适合人群 | 预置内容 |
 |------|----------|----------|
-| `PURE` 纯净版 | 希望系统轻量、稳定，按需自行安装插件的用户 | 保持当前配置，预装基础网络与常用管理插件 |
+| `PURE` 纯净版 | 希望系统轻量、稳定且需要远程组网/代理的用户 | 预装基础网络与常用管理插件，以及 Tailscale、OpenClash |
 | `PLUS` 版 | 希望刷完即用常见扩展服务的用户 | 在纯净版基础上增加 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP，以及分区扩容（partexp）、网络唤醒（wolplus）等实用插件 |
 
 > 💡 Releases 中的文件名会包含 `pure` 或 `plus`，请按需求下载对应版本。
@@ -73,7 +73,7 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布，Rel
 |------|------|
 | `源码作者-分支-pure/plus-设备型号-时间.bin` 等 | 固件本体；文件名带 `factory` 用于从原厂固件首次刷入，带 `sysupgrade` 用于 OpenWrt/ImmortalWrt 系统内升级 |
 | `Config-配置-版本-作者-分支-时间.txt` | 本次编译使用的完整 `.config`，便于复现构建或二次定制 |
-| `Packages-配置-版本-作者-分支-时间.txt` | 外部插件（OpenClash / PassWall2 及依赖 feed）的仓库、分支与 commit 记录，仅 `PLUS` 版生成，便于排查上游变更 |
+| `Packages-配置-版本-作者-分支-时间.txt` | 外部插件（OpenClash / Tailscale / PassWall2 及依赖 feed）的仓库、分支与 commit 记录，便于排查上游变更 |
 
 ---
 
@@ -175,14 +175,14 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布，Rel
 
 ## 🧱 构建机制（PURE / PLUS 如何隔离）
 
-- 两个版本由工作流参数 `WRT_PROFILE` 区分，所有 Plus 版逻辑（额外配置、feed、插件克隆）均由该条件隔离，**纯净版产物不受 Plus 版任何改动影响**。
-- Plus 版插件来源唯一：LuCI 插件本体由 `Scripts/Packages.sh` 克隆到 `package/`（优先级高于 feeds），依赖包（xray、sing-box 等）由 `passwall_packages` feed 提供，避免同名包双重定义。
+- 两个版本由工作流参数 `WRT_PROFILE` 区分；PURE 与 PLUS 分别加载各自的增量配置和外部插件。PURE 预置 Tailscale、OpenClash，PLUS 保持原有完整扩展集。
+- 外部 LuCI 插件本体由 `Scripts/Packages.sh` 按版本克隆到 `package/`（优先级高于 feeds）；PLUS 版的 xray、sing-box 等依赖则由 `passwall_packages` feed 提供，避免同名包双重定义。
 - Plus 版配置 `Config/GENERAL_AX6600_PLUS.txt` 追加在通用配置之后，按 kconfig 规则覆盖纯净版关闭的选项（如 Docker 所需内核模块、`dnsmasq-full`）。
 - 编译缓存（ccache / 工具链）与版本无关，PURE 与 PLUS 共享同一份，不额外占用缓存配额。
 
 ### 版本与验证建议
 
-- `PURE`：推荐作为日常稳定版，保持当前轻量配置。
+- `PURE`：推荐作为日常稳定版，保持轻量配置并预置 Tailscale、OpenClash。
 - `PLUS`：Plus 版会额外集成 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd、UPnP 等，固件体积和运行资源占用都会明显高于纯净版。
 - 手动测试时可在 `WRT-TEST` 工作流选择 `PROFILE=PURE` 或 `PROFILE=PLUS`；建议 Plus 版发布前至少先用 `TEST=true` 生成最终 `.config`，再用完整编译确认上游插件依赖没有变化。
 - Release 会额外上传 `Packages-*.txt` 记录 Plus 版外部插件仓库、分支和 commit，方便排查 OpenClash / PassWall2 上游变更导致的编译问题。
@@ -201,7 +201,7 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布，Rel
 |----------|------|------|
 | `.github/workflows/` | CI/CD 自动编译 | 定义 GitHub Actions 工作流，实现云端自动构建 |
 | `Scripts/` | 编译脚本 | 包含插件拉取、自定义设置等辅助脚本 |
-| `Config/` | 编译配置 | 存放 OpenWrt `.config` 配置文件（含 `GENERAL_AX6600_PLUS.txt` Plus 版增量配置） |
+| `Config/` | 编译配置 | 存放 OpenWrt `.config` 配置文件（含 PURE / PLUS 版增量配置） |
 | `Docs/` | 文档 | 刷机救砖教程等图文文档 |
 
 ---
@@ -222,6 +222,7 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布，Rel
 | 配置文件 | 作用范围 |
 |----------|----------|
 | `Config/GENERAL_AX6600.txt` | 通用配置，PURE / PLUS 两个版本共用 |
+| `Config/GENERAL_AX6600_PURE.txt` | PURE 版增量配置，预置 Tailscale、OpenClash |
 | `Config/GENERAL_AX6600_PLUS.txt` | Plus 版增量配置，仅 PLUS 生效 |
 | `Config/IPQ60XX-WIFI-YES.txt` | 设备与平台基础配置 |
 
@@ -229,7 +230,7 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布，Rel
 
 编译不会随代码提交自动触发，需通过以下方式之一：
 
-- **手动全量编译**：Actions → `QCA-ALL` → Run workflow，同时构建 PURE 与 PLUS 两个版本。
+- **手动全量编译**：Actions → `QCA-ALL` → Run workflow，仅构建 PURE 版。
 - **配置验证**：Actions → `WRT-TEST`，可选择 `PROFILE` 并勾选 `TEST=true`，仅生成最终 `.config` 不编译固件，几分钟出结果。
 - **每日自动编译**：每天早上 6 点（北京时间）由 `Auto-Clean` 清理旧产物后自动触发。
 
