@@ -180,13 +180,6 @@ jobs:
           # 额外强制安装缺失的 python 依赖
           ./scripts/feeds install -f python3-pysocks python3-unidecode
 
-          # PURE 版的 Tailscale 与 LuCI 界面均使用当前源码 feeds，不能
-          # 回退到会携带旧 init/config 文件的第三方 luci-app-tailscale。
-          if [[ "$WRT_PROFILE" == "PURE" ]] && ! ./scripts/feeds search luci-app-tailscale | grep -q '^luci-app-tailscale '; then
-            echo "Upstream feeds do not provide luci-app-tailscale" >&2
-            exit 1
-          fi
-
 
       - name: Custom Packages
         run: |

@@ -62,9 +62,10 @@ UPDATE_PACKAGE() {
 #UPDATE_PACKAGE "momo" "nikkinikki-org/OpenWrt-momo" "main"
 #UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
 if [[ "${WRT_PROFILE^^}" == "PURE" ]]; then
-	# Tailscale 及其 LuCI 界面均直接使用上游 feeds 的版本；这里只拉取
-	# 上游未收录的 OpenClash，避免第三方旧版 LuCI 包覆盖 tailscale 文件。
+	# Tailscale 核心由上游 feed 提供；部分上游分支未收录 LuCI 界面，
+	# 因此固定从适配上游服务的独立仓库补充该界面包。
 	UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "master" "pkg"
+	UPDATE_PACKAGE "luci-app-tailscale" "Tokisaki-Galaxy/luci-app-tailscale-community" "master" "pkg"
 fi
 
 if [[ "${WRT_PROFILE^^}" == "PLUS" ]]; then
